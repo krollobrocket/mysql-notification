@@ -1,4 +1,5 @@
-import { connection, argv } from './db';
+import { connection } from './db';
+import { argv } from './args';
 import { logger } from './logger';
 
 if (!argv.id) {

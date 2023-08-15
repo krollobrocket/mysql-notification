@@ -1,9 +1,6 @@
 import mysql from 'mysql';
 import config from './config';
 import { logger } from './logger';
-// parse any arguments
-import minimist from 'minimist';
-const argv = minimist(process.argv.slice(2));
 
 const connection = mysql.createConnection({
   host: config.db.host,
@@ -20,4 +17,4 @@ connection.connect((err) => {
   }
 });
 
-export { connection, argv };
+export { connection };

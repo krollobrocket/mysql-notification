@@ -4,58 +4,7 @@ import fs from 'fs';
 import config from './config';
 import { originIsAllowed } from './utils';
 import { logger } from './logger';
-
-const createIndexFile = () => {
-  const protocol = config.ssl.enabled ? 'wss' : 'ws';
-  const url = `${protocol}://${config.server.address}:${config.server.websocketPort}`;
-  const output =
-    '<!DOCTYPE html>\n' +
-    '<html>\n' +
-    '    <head>\n' +
-    '        <title>Example of a user defined function (UDF) in MySQL</title>\n' +
-    '        <meta charset="UTF-8">\n' +
-    '        <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
-    '        <style>\n' +
-    '        html, body {\n' +
-    '          margin: 0;\n' +
-    '          padding: 0; \n' +
-    '        }\n' +
-    '        #wrapper {\n' +
-    '          width: 320px;\n' +
-    '          margin: 0 auto; \n' +
-    '          text-align: center;\n' +
-    '          padding: 20px 0;\n' +
-    '        }\n' +
-    '        img {\n' +
-    '          // display: block;\n' +
-    '        }\n' +
-    '        </style>\n' +
-    '        <script>\n' +
-    '        document.addEventListener("DOMContentLoaded", (e) => {\n' +
-    '          const ws = new WebSocket("' +
-    url +
-    '", "echo-protocol");\n' +
-    '          ws.onmessage = (e) => {\n' +
-    '            const events = ["INSERT", "UPDATE", "DELETE"];\n' +
-    "            const source = 'https://via.placeholder.com/250x64.png/000/fff/?text=' + events[JSON.parse(e.data).type - 2];\n" +
-    "            const toAppend = '<img src=\"' + source + '\" />';\n" +
-    "            const wrapper = document.getElementById('wrapper');\n" +
-    '            wrapper.innerHTML += toAppend + "<br />";\n' +
-    '          };\n' +
-    '        })\n' +
-    '        </script>\n' +
-    '    </head>\n' +
-    '    <body>\n' +
-    '    <div id="wrapper"></div>\n' +
-    '    </body>\n' +
-    '</html>';
-  fs.writeFile('index.html', output, (err) => {
-    if (err) {
-      return logger.error(err);
-    }
-    logger.info('Creating index.html file.');
-  });
-};
+import pug from 'pug';
 
 export const run = async () => {
   // keeps track of all connected clients
@@ -76,9 +25,6 @@ export const run = async () => {
       cert: certificate,
     };
   }
-
-  // create our index.html file
-  createIndexFile();
 
   // create a listening socket which listens for data sent from our UDF
   net
@@ -105,18 +51,23 @@ export const run = async () => {
     });
 
   import(`${config.ssl.enabled ? 'https' : 'http'}`).then((http) => {
+    const protocol: string = config.ssl.enabled ? 'wss' : 'ws';
+    const url: string = `${protocol}://${config.server.address}:${config.server.websocketPort}`;
+    const compiledTemplate: string = pug.compileFile('templates/index.pug', {
+      pretty: true,
+    })({
+      url,
+    });
     // create a http server
     const httpServer = http
       .createServer(credentials, (req: any, res: any) => {
-        fs.readFile(__dirname + '/../' + req.url, function (err, data) {
-          if (err) {
-            res.writeHead(404);
-            res.end(JSON.stringify(err));
-            return;
-          }
+        if (req.url === '/index.html' || req.url === '/') {
           res.writeHead(200);
-          res.end(data);
-        });
+          res.end(compiledTemplate);
+        } else {
+          res.writeHead(400);
+          res.end();
+        }
       })
       .on('error', (error: any) => {
         logger.error(error);

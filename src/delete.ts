@@ -1,4 +1,5 @@
-import { connection, argv } from './db';
+import { connection } from './db';
+import { argv } from './args';
 import { logger } from './logger';
 
 const sql = 'DELETE FROM post' + (argv.id ? ' WHERE id = ?' : '');

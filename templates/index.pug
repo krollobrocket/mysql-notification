@@ -1,0 +1,31 @@
+doctype html
+html(lang="en")
+  head
+    title Example of a user defined function (UDF) in MySQL
+    style.
+      html, body {
+        margin: 0;
+        padding: 0;
+      }
+     #wrapper {
+      width: 320px;
+      margin: 0 auto;
+      text-align: center;
+      padding: 20px 0;
+     }
+     img {
+       // display: block;
+     }
+    script.
+      document.addEventListener('DOMDocumentLoaded', (e) => {
+        const ws = new WebSocket('#{url}', 'echo-protocol')
+        ws.onmessage = (e) => {
+            const events = ['INSERT', 'UPDATE', 'DELETE']
+            const source = 'https://via.placeholder.com/250x64.png/000/fff/?text=' + events[JSON.parse(e.data).type - 2];
+            const toAppend = '<img src="' + source + '" />'
+            const wrapper = document.getElementById('wrapper')
+            wrapper.innerHTML += toAppend + '<br />'
+        }
+      })
+  body
+    #wrapper

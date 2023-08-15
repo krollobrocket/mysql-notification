@@ -11,7 +11,6 @@ nbproject/*
 /dist/
 
 .dep.inc
-index.html
 .env
 
 # object files
