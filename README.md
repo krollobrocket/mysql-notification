@@ -1,4 +1,6 @@
 # mysql-notification
+[![Run Tests](https://github.com/krollobrocket/mysql-notification/actions/workflows/run_tests.yml/badge.svg)](https://github.com/krollobrocket/mysql-notification/actions/workflows/run_tests.yml)
+[![MySQL plugin test](https://github.com/krollobrocket/mysql-notification/actions/workflows/mysql_plugin_test.yml/badge.svg)](https://github.com/krollobrocket/mysql-notification/actions/workflows/mysql_plugin_test.yml)
 
 A simple example of using a user defined function (UDF) in mysql to make real-time notifications on a table change. This project consists of a mysql plugin that setups a server socket that receives messages from a trigger connected to INSERT, UPDATE, DELETE operations on a specific table in the database. The server will then send a message to a nodejs server that in turn will bounce this notification to any connected http client over a websocket.
 
