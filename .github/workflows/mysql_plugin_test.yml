@@ -1,0 +1,67 @@
+name: MySQL plugin test
+on:
+  workflow_run:
+    workflows: ["Run Tests"]
+    branches: [master]
+    types:
+      - completed
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        node-versions: ['18']
+    steps:
+      - uses: actions/checkout@v3
+      #- uses: actions/setup-node@v3
+      #  with:
+      #    node-version: ${{ matrix.node-versions }}
+      # - name: Cache npm packages
+      #  id: node-cache
+      #  uses: actions/cache@v3
+      #  with:
+      #    path: ./node_modules
+      #    key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      #    restore-keys: |
+      #      ${{ runner.os }}-node-
+      #- name: Install dependencies
+      #  run: npm i
+      - name: Build and install mysql plugin
+        working-directory: ./mysql-plugin/src
+        run: |
+          export MYSQL_INCLUDE_DIR=`mysql_config --variable=pkgincludedir`
+          export MYSQL_PLUGIN_DIR=`mysql_config --variable=plugindir`
+          sudo make install
+      - name: Start mysql server
+        run: sudo systemctl start mysql.service
+      - name: Install sql dump
+        run: mysql -uroot -proot < ./bin/test.sql
+      - name: Update mysql user to use native passwords
+        run: |
+          mysql -uroot -proot -e"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root'"
+      - name: Cache npm packages
+        id: node-cache
+        uses: actions/cache@v3
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Install dependencies
+        run: npm i
+      - name: Set environment variables
+        run: |
+          echo "WEBSOCKET_PORT=8080" >> "$GITHUB_ENV"
+          echo "MYSQL_USERNAME=root" >> "$GITHUB_ENV"
+          echo "MYSQL_PASSWORD=root" >> "$GITHUB_ENV"
+          echo "MYSQL_DATABASE=mysql_note" >> "$GITHUB_ENV"
+          echo "MYSQL_HOSTNAME=127.0.0.1" >> "$GITHUB_ENV"
+          echo "MYSQL_PORT=3306" >> "$GITHUB_ENV"
+      - name: Start server in background
+        run: npm run dev &
+      - name: test npm
+        run: |
+          npm run insert -- --title=foo --content=bar --image=example
+          npm run update -- --id=1 --title=foo --content=bar --image=example
+          npm run select -- --id=1
+          npm run delete -- --id=1

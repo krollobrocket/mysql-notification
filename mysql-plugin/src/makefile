@@ -4,7 +4,9 @@ PLUGIN?=mysql-notification
 SERVER_PORT?=2048
 SERVER_ADDRESS?=127.0.0.1
 
-${PLUGIN}.o : mysql-notification.c
+build: ${PLUGIN}.so
+
+${PLUGIN}.o : ${PLUGIN}.c
 	${CC} -c -D SERVER_PORT=${SERVER_PORT} -D SERVER_ADDRESS='"${SERVER_ADDRESS}"' -Wall -fpic ${CCFLAGS} -o $@ -I${MYSQL_INCLUDE_DIR} $?
 
 ${PLUGIN}.so : ${PLUGIN}.o

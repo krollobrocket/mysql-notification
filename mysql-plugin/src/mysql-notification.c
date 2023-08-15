@@ -12,9 +12,20 @@ typedef long long longlong;
 #endif /*__WIN__*/
 #else
 #include <string.h>
+#include <mysql_version.h>
+#if MYSQL_VERSION_ID < 80000
 #include <my_global.h>
 #include <my_sys.h>
+#else
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+typedef char my_bool;
+typedef unsigned long long ulonglong;
+typedef long long longlong;
+#endif /*  MYSQL_VERSION_ID < 80000 */
 #endif
+#include <unistd.h>
 #include <mysql.h>
 #include <ctype.h>
 #include <sys/socket.h>
